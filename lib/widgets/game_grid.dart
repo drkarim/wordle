@@ -64,6 +64,7 @@ class _GameGridState extends State<GameGrid>
                     shouldReveal: isRevealRow,
                     revealDelay: col * 200,
                     shouldPop: isCurrentRow && col == game.popCol,
+                    shouldHint: isCurrentRow && col == game.hintCol,
                   ),
                 );
               }),

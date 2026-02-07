@@ -24,6 +24,7 @@ class GameState {
   final String targetWord;
   final Map<String, LetterState> keyboardStates;
   final String? errorMessage;
+  final int hintsRemaining;
 
   const GameState({
     required this.board,
@@ -33,6 +34,7 @@ class GameState {
     required this.targetWord,
     this.keyboardStates = const {},
     this.errorMessage,
+    this.hintsRemaining = 2,
   });
 
   GameState copyWith({
@@ -43,6 +45,7 @@ class GameState {
     String? targetWord,
     Map<String, LetterState>? keyboardStates,
     String? errorMessage,
+    int? hintsRemaining,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -52,6 +55,7 @@ class GameState {
       targetWord: targetWord ?? this.targetWord,
       keyboardStates: keyboardStates ?? this.keyboardStates,
       errorMessage: errorMessage,
+      hintsRemaining: hintsRemaining ?? this.hintsRemaining,
     );
   }
 }

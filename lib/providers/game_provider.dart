@@ -20,6 +20,7 @@ class GameProvider extends ChangeNotifier {
   bool _shouldShake = false;
   int _revealRow = -1;
   int _popCol = -1;
+  int _hintCol = -1;
 
   GameProvider() {
     _initGame();
@@ -31,6 +32,7 @@ class GameProvider extends ChangeNotifier {
   bool get shouldShake => _shouldShake;
   int get revealRow => _revealRow;
   int get popCol => _popCol;
+  int get hintCol => _hintCol;
 
   void _initGame() {
     final target = _wordService.getRandomWord().toUpperCase();
@@ -266,12 +268,67 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void revealHint() {
+    if (_state.status != GameStatus.playing) return;
+    if (_state.hintsRemaining <= 0) return;
+
+    final currentRow = _state.currentRow;
+    final newBoard = _copyBoard();
+
+    // Find leftmost unrevealed position in current row
+    int hintPosition = -1;
+    for (int col = 0; col < GameConfig.wordLength; col++) {
+      if (!_correctPositions.containsKey(col)) {
+        hintPosition = col;
+        break;
+      }
+    }
+
+    if (hintPosition == -1) return; // All positions already revealed
+
+    // Place correct letter at hint position
+    final correctLetter = _state.targetWord[hintPosition];
+    newBoard[currentRow][hintPosition] = TileData(
+      letter: correctLetter,
+      state: LetterState.correct,
+    );
+
+    // Add to correct positions map
+    _correctPositions[hintPosition] = correctLetter;
+
+    // Pre-fill this position on all future rows
+    for (int r = currentRow + 1; r < GameConfig.maxAttempts; r++) {
+      newBoard[r][hintPosition] = TileData(
+        letter: correctLetter,
+        state: LetterState.correct,
+      );
+    }
+
+    // Trigger hint animation
+    _hintCol = hintPosition;
+
+    // Update state
+    _state = _state.copyWith(
+      board: newBoard,
+      currentCol: _nextWritableCol(_state.currentCol),
+      hintsRemaining: _state.hintsRemaining - 1,
+    );
+    notifyListeners();
+
+    // Reset hint animation
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _hintCol = -1;
+      notifyListeners();
+    });
+  }
+
   void newGame() {
     _initGame();
     _correctPositions = {};
     _shouldShake = false;
     _revealRow = -1;
     _popCol = -1;
+    _hintCol = -1;
     notifyListeners();
   }
 
